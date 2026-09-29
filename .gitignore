@@ -1,0 +1,16 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Test / tooling caches
+.pytest_cache/
+
+# Virtual environments
+.venv
+
+# IndexTTS checkpoints (downloaded separately, multi-GB)
+checkpoints/

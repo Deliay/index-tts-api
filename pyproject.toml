@@ -1,0 +1,42 @@
+[project]
+name = "index-tts-api"
+version = "0.1.0"
+description = "HTTP API service exposing IndexTTS text-to-speech capabilities."
+readme = "README.md"
+authors = [
+    { name = "Zero Ash", email = "admin@remiliascarlet.com" }
+]
+# IndexTTS (the `indextts` dependency) supports Python >=3.10,<3.12.
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "fastapi>=0.141.1",
+    "numpy>=2.2",
+    "python-multipart>=0.0.20",
+    "uvicorn[standard]>=0.54.0",
+    # IndexTTS-2.5 inference engine, pinned to the upstream commit that ships
+    # `indextts.infer_v2_5`. Older revisions only provide IndexTTS-2 / 1.5.
+    "indextts",
+]
+
+[project.scripts]
+index-tts-api = "index_tts_api.main:main"
+
+[tool.uv.sources]
+indextts = { git = "https://github.com/index-tts/index-tts", rev = "ee40fa7d6c6b8a2c7f06105f9f1e65775b74868c" }
+
+[build-system]
+requires = ["uv_build>=0.12.19,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.13.1",
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = [
+    "model: exercises the real IndexTTS-2.5 model (needs a GPU and checkpoints)",
+]

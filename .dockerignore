@@ -1,0 +1,26 @@
+# The build only needs the project metadata and src/; everything else is noise
+# (or, in the case of .venv and checkpoints/, tens of gigabytes of it).
+
+.git
+.gitignore
+.venv
+checkpoints
+examples
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Editor / OS noise
+.idea/
+.vscode/
+.DS_Store
+
+# Not needed inside the image
+tests/
