@@ -11,22 +11,37 @@ FROM nvidia/cuda:12.1.0-runtime-ubuntu22.04 AS builder
 
 COPY --from=ghcr.io/astral-sh/uv:0.12.19 /uv /uvx /usr/local/bin/
 
+# Optional mirrors for slow networks. The lockfile pins absolute download URLs,
+# so a PyPI mirror has to be applied by re-locking — `uv sync --index` alone
+# would still fetch from files.pythonhosted.org. Empty values (the CI default)
+# mean "use the lock and uv's default download host as-is".
+#   --build-arg UV_DEFAULT_INDEX=https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+#   --build-arg UV_PYTHON_INSTALL_MIRROR=https://ghfast.top/https://github.com/astral-sh/python-build-standalone/releases/download
+ARG UV_DEFAULT_INDEX=
+ARG UV_PYTHON_INSTALL_MIRROR=
+
 ENV DEBIAN_FRONTEND=noninteractive \
+    UV_DEFAULT_INDEX=${UV_DEFAULT_INDEX} \
+    UV_PYTHON_INSTALL_MIRROR=${UV_PYTHON_INSTALL_MIRROR} \
     UV_PROJECT_ENVIRONMENT=/opt/venv \
     UV_PYTHON_INSTALL_DIR=/opt/python \
     UV_PYTHON_DOWNLOADS=automatic \
     UV_LINK_MODE=copy \
     UV_COMPILE_BYTECODE=1
 
+# HTTP/2 `git fetch` of the pinned `indextts` revision gets reset on some
+# networks (including this one); HTTP/1.1 is the reliable path.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends git ca-certificates \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/* \
+ && git config --system http.version HTTP/1.1
 
 WORKDIR /app
 
 # Dependency layer — metadata only, so editing the source keeps this cache warm.
 COPY pyproject.toml uv.lock .python-version README.md ./
-RUN uv sync --frozen --no-dev --no-editable --no-install-project
+RUN if [ -n "${UV_DEFAULT_INDEX}" ]; then uv lock; fi \
+ && uv sync --frozen --no-dev --no-editable --no-install-project
 
 # Application layer.
 COPY src ./src

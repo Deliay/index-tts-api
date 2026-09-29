@@ -149,6 +149,19 @@ docker run --rm --gpus all -p 8000:8000 \
   index-tts-api
 ```
 
+On a slow network, point the build at mirrors. The lockfile pins absolute download
+URLs, so a PyPI mirror has to be applied by re-locking, and `uv` also needs a
+mirror for the Python interpreter it downloads from GitHub:
+
+```bash
+podman build -t index-tts-api \
+  --build-arg UV_DEFAULT_INDEX=https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple \
+  --build-arg UV_PYTHON_INSTALL_MIRROR=https://ghfast.top/https://github.com/astral-sh/python-build-standalone/releases/download \
+  .
+```
+
+Both arguments are empty by default, which is what CI uses.
+
 `--gpus all` needs the NVIDIA Container Toolkit. The mount point must contain the
 same layout as the local `checkpoints/` directory:
 
